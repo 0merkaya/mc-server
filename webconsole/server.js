@@ -244,9 +244,26 @@ app.delete('/api/plugins/:filename', requireAuth, (req, res) => {
   }
 
   const filePath = path.join(PLUGINS_DIR, filename);
+  const autoPath = path.join('/autoplugins', filename);
+
+  let deleted = false;
   if (fs.existsSync(filePath)) {
     fs.unlinkSync(filePath);
-    return res.json({ success: true, message: `${filename} silindi.` });
+    deleted = true;
+  }
+  if (fs.existsSync(autoPath)) {
+    try { fs.unlinkSync(autoPath); } catch (e) {}
+    deleted = true;
+  }
+
+  // Ensure initialized flag exists so container restart doesn't re-sync
+  const initFlag = path.join(PLUGINS_DIR, '.initialized');
+  if (!fs.existsSync(initFlag)) {
+    try { fs.writeFileSync(initFlag, '1'); } catch (e) {}
+  }
+
+  if (deleted) {
+    return res.json({ success: true, message: `${filename} kalıcı olarak silindi.` });
   }
   return res.status(404).json({ error: 'Plugin dosyası bulunamadı.' });
 });

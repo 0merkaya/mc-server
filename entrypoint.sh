@@ -16,11 +16,16 @@ if [ -f /autoconfig/paper-world-defaults.yml ]; then
   cp -f /autoconfig/paper-world-defaults.yml /data/config/paper-world-defaults.yml
 fi
 
-# 3. Plugin dizinini ve otomatik kopyalamayı ayarla
+# 3. Plugin dizinini ve yalnızca İLK KURULUMDA kopyalamayı ayarla (.initialized bayrağı)
 mkdir -p /data/plugins
-if [ -d /autoplugins ] && [ "$(ls -A /autoplugins 2>/dev/null)" ]; then
-  echo "[Container Init] Varsayılan pluginler ve ayarlar /data/plugins/ dizinine kopyalanıyor..."
-  cp -rf /autoplugins/* /data/plugins/ 2>/dev/null || true
+if [ ! -f /data/plugins/.initialized ]; then
+  echo "[Container Init] İlk Kurulum: Varsayılan pluginler /data/plugins/ dizinine kopyalanıyor..."
+  if [ -d /autoplugins ] && [ "$(ls -A /autoplugins 2>/dev/null)" ]; then
+    cp -rf /autoplugins/* /data/plugins/ 2>/dev/null || true
+  fi
+  touch /data/plugins/.initialized
+else
+  echo "[Container Init] Plugin dizini mevcut. Kullanıcının sildiği/yüklediği pluginler korunuyor."
 fi
 
 # 4. Web Console Node.js uygulamasını arka planda çalıştır (Port 8080)
