@@ -1,0 +1,23 @@
+# ClearLag Optimizasyon ve Otomatik Eşya Temizleme Yapılandırması
+settings:
+  auto-update: false
+  enable-metrics: false
+
+auto-remover:
+  enabled: true
+  autoremoval-interval: 300 # Her 5 dakikada bir çalışır (saniye)
+  warnings:
+    - time: 60
+      msg: '&c[Sunucu] &eYerdeki eşyalar &c60 saniye &esonra temizlenecektir!'
+    - time: 30
+      msg: '&c[Sunucu] &eYerdeki eşyalar &c30 saniye &esonra temizlenecektir!'
+    - time: 10
+      msg: '&c[Sunucu] &eYerdeki eşyalar &c10 saniye &esonra temizlenecektir!'
+  remove-ground-items: true
+  remove-mobs: false
+  remove-entities:
+    item-frame: false
+    painting: false
+    boat: false
+    minecart: false
+  broadcast-message: '&c[Sunucu] &aYerdeki tüm gereksiz eşyalar temizlendi!'

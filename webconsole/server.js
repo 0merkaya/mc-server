@@ -8,7 +8,7 @@ const RconClient = require('./rcon');
 
 const app = express();
 const PORT = process.env.WEB_PORT || 8080;
-const WEB_PASSWORD = process.env.WEB_PASSWORD || 'adminogullari123';
+const WEB_PASSWORD = process.env.WEB_PASSWORD || 'admin123';
 const RCON_HOST = process.env.RCON_HOST || '127.0.0.1';
 const RCON_PORT = process.env.RCON_PORT || 25575;
 const RCON_PASSWORD = process.env.RCON_PASSWORD || 'minecraftrconpass';

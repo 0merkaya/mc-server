@@ -5,6 +5,10 @@ ENV TYPE=PAPER
 ENV VERSION=26.3
 ENV PAPER_CHANNEL=experimental
 
+# Sunucu İsmi & Açıklaması (MOTD)
+ENV SERVER_NAME="HeykirHolding MC"
+ENV MOTD="\\u00A7a\\u00A7lHeykirHolding MC - by ömer"
+
 # EULA
 ENV EULA=TRUE
 
@@ -21,8 +25,7 @@ ENV ENABLE_RCON=true
 ENV RCON_PORT=25575
 ENV RCON_PASSWORD=minecraftrconpass
 
-# Web Console Şifresi (Varsayılan: admin123)
-ENV WEB_PASSWORD=admin123
+ENV WEB_PASSWORD=adminoglu123
 
 # RAM & Performans Optimizasyonu
 ENV MEMORY=16G
@@ -36,8 +39,10 @@ RUN apt-get update && apt-get install -y nodejs npm && rm -rf /var/lib/apt/lists
 COPY webconsole/ /webconsole/
 RUN cd /webconsole && npm install --production
 
-# Otomatik Yüklenecek Pluginleri Saklama Alanına Kopyala
+# Konfigürasyonları, İkonu ve Pluginleri Saklama Alanına Kopyala
+COPY config/ /autoconfig/
 COPY plugins/ /autoplugins/
+COPY server-icon.png /server-icon.png
 
 # Başlatma Betiği
 COPY entrypoint.sh /entrypoint.sh
