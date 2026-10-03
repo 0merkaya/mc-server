@@ -1,6 +1,6 @@
 FROM itzg/minecraft-server:latest
 
-# PaperMC ve Sürüm
+# PaperMC ve Sürüm Ayarları
 ENV TYPE=PAPER
 ENV VERSION=26.3
 ENV PAPER_CHANNEL=experimental
@@ -13,16 +13,37 @@ ENV ONLINE_MODE=FALSE
 ENV ENFORCE_WHITELIST=FALSE
 ENV OVERRIDE_SERVER_PROPERTIES=TRUE
 
-# Sunucu Açıldığında Otomatik Çalışacak Komutlar
-ENV EXEC_DIRECTLY_WITH=TRUE
-ENV EXEC_DIRECTLY_COMMANDS="op hayatisasmaz"
+# Operatör (OP) Ayarı - itzg resmi env variable'ı
+ENV OPS=hayatisasmaz
 
-# 16GB RAM Optimizasyonu (Aikar Flags)
+# RCON Ayarları (Web Console'un Komut Gönderebilmesi İçin)
+ENV ENABLE_RCON=true
+ENV RCON_PORT=25575
+ENV RCON_PASSWORD=minecraftrconpass
+
+# Web Console Şifresi (Varsayılan: admin123)
+ENV WEB_PASSWORD=admin123
+
+# RAM & Performans Optimizasyonu
 ENV MEMORY=16G
 ENV USE_AIKAR_FLAGS=TRUE
 
-# Dosyaları Kopyala
-COPY plugins/ /data/plugins/
+# Node.js Kurulumu (Web Console için)
+USER root
+RUN apt-get update && apt-get install -y nodejs npm && rm -rf /var/lib/apt/lists/*
+
+# Web Console Kodlarını Kopyala ve Bağımlılıkları Kur
+COPY webconsole/ /webconsole/
+RUN cd /webconsole && npm install --production
+
+# Otomatik Yüklenecek Pluginleri Saklama Alanına Kopyala
+COPY plugins/ /autoplugins/
+
+# Başlatma Betiği
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 EXPOSE 25565
-VOLUME ["/data"]
+EXPOSE 8080
+
+ENTRYPOINT ["/entrypoint.sh"]

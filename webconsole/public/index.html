@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minecraft Sunucu Yönetim Konsolu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Login Screen Overlay -->
+  <div id="loginOverlay" class="login-overlay">
+    <div class="login-card glass-panel">
+      <div class="brand">
+        <div class="brand-icon">⛏️</div>
+        <h2>Minecraft Web Console</h2>
+        <p>Sunucu yönetim paneline erişmek için şifre girin</p>
+      </div>
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="input-group">
+          <label for="passwordInput">Yönetici Şifresi</label>
+          <input type="password" id="passwordInput" placeholder="Şifrenizi yazın..." required autofocus />
+        </div>
+        <div id="loginError" class="alert-box error hidden"></div>
+        <button type="submit" class="btn btn-primary btn-block">Giriş Yap 🚀</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main Dashboard App -->
+  <div id="app" class="dashboard hidden">
+    <!-- Navbar Header -->
+    <header class="navbar glass-panel">
+      <div class="nav-brand">
+        <span class="icon">🟩</span>
+        <h1>Minecraft Control Center</h1>
+        <span class="badge badge-version">PaperMC 26.3</span>
+      </div>
+      <div class="nav-status">
+        <div class="status-chip" id="rconChip">
+          <span class="dot offline" id="rconDot"></span>
+          <span id="rconStatusText">RCON Bağlanıyor...</span>
+        </div>
+        <div class="status-chip">
+          <span class="chip-label">Bellek:</span>
+          <span id="memUsage" class="chip-val">-- MB</span>
+        </div>
+      </div>
+      <div class="nav-actions">
+        <button onclick="makeMeOp()" class="btn btn-emerald" title="hayatisasmaz kullanıcısını OP yap">
+          👑 OP Yap (hayatisasmaz)
+        </button>
+        <button onclick="restartServer()" class="btn btn-danger">
+          🔄 Yeniden Başlat
+        </button>
+        <button onclick="handleLogout()" class="btn btn-secondary" title="Çıkış Yap">
+          🚪 Çıkış
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Grid Content -->
+    <main class="main-container">
+      <!-- Tabs Navigation -->
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('console')">💻 Sunucu Konsolu & Loglar</button>
+        <button class="tab-btn" onclick="switchTab('plugins')">🧩 Plugin Yöneticisi</button>
+        <button class="tab-btn" onclick="switchTab('quick')">⚡ Hızlı Komutlar & Bilgi</button>
+      </div>
+
+      <!-- Tab Content: Console -->
+      <section id="tab-console" class="tab-content active glass-panel">
+        <div class="console-header">
+          <div class="console-title">
+            <span>Canlı Konsol Çıktısı (/data/logs/latest.log)</span>
+          </div>
+          <div class="console-controls">
+            <label class="toggle-label">
+              <input type="checkbox" id="autoScrollCheck" checked />
+              Otomatik Kaydır
+            </label>
+            <button onclick="clearConsole()" class="btn btn-xs btn-secondary">Temizle</button>
+          </div>
+        </div>
+
+        <div id="consoleTerminal" class="console-terminal">
+          <div class="log-line info">[Web Console] Bağlantı kuruluyor... Log akışı bekleniyor.</div>
+        </div>
+
+        <form id="commandForm" class="command-box" onsubmit="sendCommand(event)">
+          <span class="cmd-prompt">&gt;</span>
+          <input type="text" id="cmdInput" placeholder="Minecraft komutu girin (örn: op hayatisasmaz, list, reload confirm, say selam)..." autocomplete="off" />
+          <button type="submit" class="btn btn-primary">Gönder ↵</button>
+        </form>
+      </section>
+
+      <!-- Tab Content: Plugins -->
+      <section id="tab-plugins" class="tab-content glass-panel hidden">
+        <div class="plugins-header">
+          <h2>🧩 Yüklü Sunucu Pluginleri (/data/plugins)</h2>
+          <p class="subtitle">Yeni `.jar` uzantılı plugin dosyalarını buraya yükleyebilir veya mevcutları yönetebilirsiniz.</p>
+        </div>
+
+        <!-- File Upload Drag Drop Area -->
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+          <input type="file" id="fileInput" accept=".jar" style="display:none" onchange="uploadPluginFile(this.files[0])" />
+          <div class="upload-icon">📁</div>
+          <h3>Plugin Yüklemek İçin Tıklayın veya Sürükleyip Bırakın</h3>
+          <p>Sadece <strong>.jar</strong> uzantılı Minecraft plugin dosyaları desteklenir</p>
+        </div>
+
+        <div id="uploadStatus" class="alert-box hidden" style="margin-top:15px"></div>
+
+        <div class="plugins-list-container">
+          <table class="plugins-table">
+            <thead>
+              <tr>
+                <th>Plugin Dosya Adı</th>
+                <th>Dosya Boyutu</th>
+                <th>Son Güncelleme</th>
+                <th>İşlemler</th>
+              </tr>
+            </thead>
+            <tbody id="pluginsTableBody">
+              <tr>
+                <td colspan="4" class="text-center">Plugin listesi yükleniyor...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Tab Content: Quick Commands -->
+      <section id="tab-quick" class="tab-content glass-panel hidden">
+        <h2>⚡ Sık Kullanılan Sunucu Komutları</h2>
+        <p class="subtitle">Tek tıkla sunucuda çalıştırabileceğiniz hızlı aksiyonlar:</p>
+
+        <div class="quick-grid">
+          <div class="quick-card">
+            <h3>👑 Oyuncuyu OP Yap</h3>
+            <p>Kendinizi veya başkasını yetkili yapmak için kullanıcı adı girin.</p>
+            <div class="input-inline">
+              <input type="text" id="opUsernameInput" value="hayatisasmaz" placeholder="Kullanıcı adı" />
+              <button onclick="runCustomOp()" class="btn btn-emerald">OP Ver</button>
+            </div>
+          </div>
+
+          <div class="quick-card">
+            <h3>👥 Çevrimiçi Oyuncular</h3>
+            <p>Şu an sunucuda aktif oyuncuları listeler.</p>
+            <button onclick="quickCmd('list')" class="btn btn-primary">Listele (/list)</button>
+          </div>
+
+          <div class="quick-card">
+            <h3>🧩 Yüklü Pluginleri Kontrol Et</h3>
+            <p>Minecraft plugin motorunda aktif olan pluginleri gör.</p>
+            <button onclick="quickCmd('plugins')" class="btn btn-primary">Pluginler (/plugins)</button>
+          </div>
+
+          <div class="quick-card">
+            <h3>☀️ Oyun Zamanı Ayarla</h3>
+            <p>Dünyada gündüz yapın.</p>
+            <button onclick="quickCmd('time set day')" class="btn btn-primary">Gündüz Yap (/time set day)</button>
+          </div>
+
+          <div class="quick-card">
+            <h3>☀️ Hava Durumunu Temizle</h3>
+            <p>Yağmuru ve fırtınayı durdurur.</p>
+            <button onclick="quickCmd('weather clear')" class="btn btn-primary">Hava Açık (/weather clear)</button>
+          </div>
+
+          <div class="quick-card">
+            <h3>♻️ Konfigürasyon Yeniden Yükle</h3>
+            <p>PaperMC ayarlarını ve plugin konfigürasyonlarını yeniler.</p>
+            <button onclick="quickCmd('reload confirm')" class="btn btn-warning">Yeniden Yükle (/reload confirm)</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
