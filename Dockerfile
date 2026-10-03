@@ -8,7 +8,7 @@ ENV PAPER_CHANNEL=experimental
 # EULA Kabul
 ENV EULA=TRUE
 
-# Crackli (Offline Mod) ve Güvenlik Ayarları
+# Crackli (Offline Mod) Ayarları
 ENV ONLINE_MODE=FALSE
 ENV ENFORCE_WHITELIST=FALSE
 ENV OVERRIDE_SERVER_PROPERTIES=TRUE
@@ -17,7 +17,8 @@ ENV OVERRIDE_SERVER_PROPERTIES=TRUE
 ENV MEMORY=16G
 ENV USE_AIKAR_FLAGS=TRUE
 
-# Eklentileri (Plugins) Kopyala
+# ops.json ve Eklentileri Kopyala
+COPY ops.json /data/ops.json
 COPY plugins/ /data/plugins/
 
 EXPOSE 25565
